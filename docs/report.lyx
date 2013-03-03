@@ -1,0 +1,479 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\begin_modules
+theorems-ams
+eqs-within-sections
+figs-within-sections
+\end_modules
+\maintain_unincluded_children false
+\language british
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks false
+\pdf_backref false
+\pdf_pdfusetitle true
+\papersize a4paper
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Lab PSU controller
+\end_layout
+
+\begin_layout Author
+Martin Bo Kristensen Grønholdt (deadbok)
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+The goal of this report is to document the implementation of a power supply
+ controller with the following set of features:
+\end_layout
+
+\begin_layout Itemize
+2 channel voltage sense
+\end_layout
+
+\begin_layout Itemize
+2 channel current sense
+\end_layout
+
+\begin_layout Itemize
+2 channel over current protection
+\end_layout
+
+\begin_layout Itemize
+LCD read out of voltage, current, and current limit
+\end_layout
+
+\begin_layout Itemize
+Current limit adjustable via a potentiometer
+\end_layout
+
+\begin_layout Itemize
+Current limit reset button
+\end_layout
+
+\begin_layout Itemize
+Fan speed control on the
+\end_layout
+
+\begin_layout Section
+Hardware
+\end_layout
+
+\begin_layout Itemize
+PICkit 2 44-Pin Demo Board
+\end_layout
+
+\begin_layout Itemize
+16x3 Character LCD (HD44780)
+\end_layout
+
+\begin_layout Itemize
+A few external resistors and stuff...
+\end_layout
+
+\begin_layout Itemize
+A dual relay board from Keyes
+\end_layout
+
+\begin_layout Itemize
+A Socket 775 CPU cooler with a 4-pin fan.
+\end_layout
+
+\begin_layout Subsection
+PICkit 2 44-Pin Demo Board
+\end_layout
+
+\begin_layout Standard
+The board is born with a 10k potentiometer and a push button.
+ The potentiometer will be used as current limit adjustment, and the push
+ button will to reset the controller, when the current limiter has been
+ triggered.
+\end_layout
+
+\begin_layout Subsection
+LCD
+\end_layout
+
+\begin_layout Standard
+The LCD uses a HD44780 controller, I run this in 8-bit mode, because i have
+ pins to spare.
+ The LCD I have used has only 3 usable lines of 16 characters, although
+ there are 4x16 cells, the first line is reserved for some odd symbols.
+ The addressing might not fit a standard 4x16 character LCD.
+\end_layout
+
+\begin_layout Subsection
+Current and voltage sense
+\end_layout
+
+\begin_layout Standard
+To measure current I use the ADC to measure the voltage drop across a known
+ resistor, in series with the output.
+ Then use Ohms law 
+\begin_inset Formula $I=\frac{U}{R}$
+\end_inset
+
+to calculate the current.
+ The resistor is selected to be 0.22 Ohms, which yields 0.22V across, when
+ 1 ampere is draw from ther output.
+\end_layout
+
+\begin_layout Standard
+The output volage are converted into the 0-5V range, by using a voltage
+ divider across the output.
+ The negative supply voltage is made positive by an invereting voltage follower.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename va_sense.png
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Voltage sense circuit
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+PSU control
+\end_layout
+
+\begin_layout Standard
+The PSU control circuit uses a couple of relays to control the positive,
+ and negative output lines.
+ Both lines are controlled by one data pin, and will turn on/off simultaneously.
+ I found it extremly cheap to buy a premade relay board, but here a schemeatic
+ for a relay driver.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename relay driver.eps
+	width 15cm
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Relay driver
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Temperature sense
+\end_layout
+
+\begin_layout Standard
+The temperature sensor, measures the temperature of the heatsink, and controls
+ the fan accordingly.
+ Precision is not needed, only some distinction beetween high and low temperatur
+es.
+ I found a circuit that measures the reverse leakage current of a diode,
+ this leakage current dependent on the temparature of the diode
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+http://www.edn.com/design/analog/4326575/Simple-microcontroller-temperature-measur
+ement-uses-only-a-diode-and-a-capacitor
+\end_layout
+
+\end_inset
+
+.
+ The microcontroller charges the capacitor, an measures the time it takes
+ to discharge it through the diode.
+ Shorter discharge times means higher temperatures.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename temp_sense.eps
+	width 15cm
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Temperature sense circuit
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Pin map
+\end_layout
+
+\begin_layout Standard
+These are the pins on the PICMicro, that I am using for the interface to
+ the world.
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RB0 Reset
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RA0 Current limit adjust
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RA1 Current sense 1
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RA2 Voltage sense 1
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RA3 Voltage sense 2
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RB1 Temperature sense
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RD0-7 LCD data
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RE0 LCD enable
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RE1 LCD R/W
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RE2 LCD register select
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RC0 PSU control
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+RB2 Fan control
+\end_layout
+
+\begin_layout Section
+Software
+\end_layout
+
+\begin_layout Standard
+The software was developed in MPLABX using the xc8 compiler.
+ The overall structure can be seen in the following flowchart.
+ The code that talks to the LCD controller (HD44780) has been documented
+ lots of times on the net, so I will not go into details about it.
+ Look at here: 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.ekenrooi.net/lcd/lcd.shtml
+\end_layout
+
+\end_inset
+
+, if you need to read up on this.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename firmwareflow.dia
+	width 15cm
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+The firmware flowchart
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Init
+\end_layout
+
+\begin_layout Standard
+Nothing exciting here just standard peripheral initialisation stuff.
+\end_layout
+
+\begin_layout Subsection
+Display data
+\end_layout
+
+\begin_layout Standard
+Send the captured and converted data to the HD44780 chip.
+ 
+\end_layout
+
+\begin_layout Subsection
+Sampling the inputs
+\end_layout
+
+\begin_layout Standard
+The ADC is set up so that 5V is the maximum voltage that result in a sample
+ value of 1024.
+ The display has a range from 00.00 to 99.99.
+ 
+\end_layout
+
+\end_body
+\end_document

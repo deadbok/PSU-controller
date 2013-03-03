@@ -1,0 +1,13 @@
+unnamed_net12	U1-6 R4-1 R3-2 
+unnamed_net11	U1-7 R4-2 T4-1 
+unnamed_net10	T3-1 T1-1 R1-2 
+unnamed_net9	R3-1 T2-1 R2-2 
+unnamed_net8	R8-1 R7-2 
+unnamed_net7	U2-1 R8-2 T4-1 
+unnamed_net6	R6-3 R6-1 R5-2 
+unnamed_net5	R7-1 R6-2 R4-1 
+unnamed_net4	T3-1 R4-2 
+GND	U1-5 U2-3 R1-1 R5-1 R2-1 
+unnamed_net3	R3-3 R3-1 R2-2 
+unnamed_net2	T2-1 R3-2 R1-1 
+unnamed_net1	T1-1 R1-2 
